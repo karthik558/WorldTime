@@ -20,6 +20,9 @@ interface Preferences {
   showSelector: boolean
   showCityCards: boolean
   bgAnimation: boolean
+  alarmTime?: string // HH:MM in local time
+  alarmEnabled?: boolean
+  use24h: boolean
 }
 
 interface PreferencesContextType {
@@ -43,6 +46,9 @@ const DEFAULT: Preferences = {
   showSelector: true,
   showCityCards: true,
   bgAnimation: false,
+  alarmTime: undefined,
+  alarmEnabled: false,
+  use24h: true,
 }
 
 const PreferencesContext = createContext<PreferencesContextType | undefined>(undefined)

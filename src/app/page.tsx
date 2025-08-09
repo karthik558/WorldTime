@@ -12,6 +12,7 @@ import SettingsPanel from '../components/SettingsPanel'
 import { usePreferences } from '../components/PreferencesProvider'
 import Preloader from '../components/Preloader'
 import { useAccurateUtcTime } from '../hooks/useAccurateUtcTime'
+import AlarmOverlay from '../components/AlarmOverlay'
 
 export default function Home() {
   const { preferences, update } = usePreferences()
@@ -62,6 +63,7 @@ export default function Home() {
   {showLoader && <Preloader minDurationMs={2600} onDone={()=>setShowLoader(false)} />}
   {/* Ambient only renders while in fullscreen and toggle enabled */}
   {preferences.fullscreen && preferences.bgAnimation && <AmbientBackground />}
+  <AlarmOverlay />
   <motion.div
     key="fs-container"
     animate={fsTransition==='enter' ? {scale:[0.97,1]} : fsTransition==='exit' ? {scale:[1,0.97]} : {scale:1}}

@@ -127,12 +127,42 @@ export default function SettingsPanel(){
                 <section className="space-y-3">
                   <Label>Display</Label>
                   <div className="grid grid-cols-2 gap-2">
+                    <DisplaySelect accent={preferences.accent} label="24h" active={preferences.use24h} onToggle={()=>update('use24h', !preferences.use24h)} />
                     <DisplaySelect accent={preferences.accent} label="Seconds" active={preferences.showSeconds} onToggle={()=>update('showSeconds', !preferences.showSeconds)} />
                     <DisplaySelect accent={preferences.accent} label="Date" active={preferences.showDate} onToggle={()=>update('showDate', !preferences.showDate)} />
                     <DisplaySelect accent={preferences.accent} label="Search" active={preferences.showSelector} onToggle={()=>update('showSelector', !preferences.showSelector)} />
                     <DisplaySelect accent={preferences.accent} label="Cards" active={preferences.showCityCards} onToggle={()=>update('showCityCards', !preferences.showCityCards)} />
                     <DisplaySelect accent={preferences.accent} label="Quotes" active={preferences.showQuotes} onToggle={()=>update('showQuotes', !preferences.showQuotes)} />
                   </div>
+                </section>
+                <section className="space-y-3">
+                  <Label>Alarm</Label>
+                  <AlarmTimePicker
+                    value={preferences.alarmTime}
+                    use24h={preferences.use24h}
+                    onChange={(val)=>update('alarmTime', val)}
+                  />
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      onClick={()=>update('alarmEnabled', !preferences.alarmEnabled)}
+                      className={`flex-1 h-11 rounded-lg text-[11px] font-medium border transition relative overflow-hidden ${preferences.alarmEnabled? 'border-red-500 bg-red-600/90 text-white shadow-sm':'border-neutral-300 dark:border-neutral-700 bg-neutral-100/70 dark:bg-neutral-800/60 text-neutral-600 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800'}`}
+                      aria-pressed={preferences.alarmEnabled}
+                    >
+                      {preferences.alarmEnabled ? 'Disable Alarm' : 'Enable Alarm'}
+                      {preferences.alarmEnabled && <span className="absolute inset-x-0 bottom-0 h-0.5 bg-gradient-to-r from-red-400 to-red-600" />}
+                    </button>
+                    {preferences.alarmTime && (
+                      <button
+                        type="button"
+                        onClick={()=>update('alarmTime', undefined)}
+                        className="h-11 px-3 rounded-lg text-[11px] font-medium border border-neutral-300 dark:border-neutral-700 bg-neutral-100/70 dark:bg-neutral-800/60 text-neutral-600 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-700"
+                      >Clear</button>
+                    )}
+                  </div>
+                  {preferences.alarmEnabled && preferences.alarmTime && (
+                    <p className="text-[11px] text-neutral-600 dark:text-neutral-400">Will ring at <span className="font-semibold text-neutral-900 dark:text-neutral-100">{preferences.use24h ? preferences.alarmTime : formatAlarm12(preferences.alarmTime)}</span></p>
+                  )}
                 </section>
                 <div className="pt-2 flex justify-between border-t border-neutral-200 dark:border-neutral-800">
                   <button onClick={reset} className="text-[11px] text-neutral-500 hover:text-neutral-800 dark:hover:text-neutral-200">Reset</button>
@@ -168,4 +198,77 @@ function DisplaySelect({label, active, onToggle, accent}:{label:string; active:b
   {active && <span className={`absolute inset-x-0 bottom-0 h-0.5 bg-gradient-to-r ${accentClass(accent)}`}></span>}
     </button>
   )
+}
+
+// Alarm time picker with 24h or 12h modes; stores value as HH:MM 24h
+function AlarmTimePicker({value, onChange, use24h}:{value?:string; onChange:(v?:string)=>void; use24h:boolean}){
+  // Build hour & minute arrays
+  const hours = use24h ? Array.from({length:24},(_,i)=>i) : Array.from({length:12},(_,i)=>i+1)
+  const minutes = Array.from({length:60},(_,i)=>i)
+  let hour24:number|undefined, minute:number|undefined, period:'AM'|'PM'='AM'
+  if(value){
+    const [h,m] = value.split(':').map(x=>parseInt(x,10))
+    hour24 = h; minute = m
+    if(!use24h){
+      period = h>=12? 'PM':'AM'
+    }
+  }
+  const displayHour = use24h ? hour24 ?? 0 : (((hour24??0)%12)||12)
+  const displayMinute = minute ?? 0
+  const displayPeriod = period
+  const convertTo24 = (h12:number, per:'AM'|'PM') => {
+    if(h12===12) return per==='AM'?0:12
+    return per==='AM'? h12 : h12+12
+  }
+  const commit = (rawHour:number, m:number, per: 'AM'|'PM') => {
+    let storeH = rawHour
+    if(!use24h){
+      storeH = convertTo24(rawHour, per)
+    }
+    const hh = String(storeH).padStart(2,'0')
+    const mm = String(m).padStart(2,'0')
+    onChange(`${hh}:${mm}`)
+  }
+  return (
+    <div className="flex gap-2 items-stretch">
+      <div className="flex-1 flex gap-2">
+        <select
+          value={displayHour}
+          onChange={e=>commit(parseInt(e.target.value,10), displayMinute, displayPeriod)}
+          className="flex-1 h-11 rounded-lg border border-neutral-300 dark:border-neutral-700 bg-white/70 dark:bg-neutral-800/60 px-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent-from)]/50"
+        >
+          {hours.map(h=> <option key={h} value={h}>{use24h? String(h).padStart(2,'0') : h}</option>)}
+        </select>
+        <select
+          value={displayMinute}
+          onChange={e=>commit(displayHour, parseInt(e.target.value,10), displayPeriod)}
+          className="flex-1 h-11 rounded-lg border border-neutral-300 dark:border-neutral-700 bg-white/70 dark:bg-neutral-800/60 px-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent-from)]/50"
+        >
+          {minutes.map(m=> <option key={m} value={m}>{String(m).padStart(2,'0')}</option>)}
+        </select>
+        {!use24h && (
+          <select
+            value={displayPeriod}
+            onChange={e=>commit(displayHour, displayMinute, e.target.value as 'AM'|'PM')}
+            className="w-20 h-11 rounded-lg border border-neutral-300 dark:border-neutral-700 bg-white/70 dark:bg-neutral-800/60 px-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent-from)]/50"
+          >
+            <option value="AM">AM</option>
+            <option value="PM">PM</option>
+          </select>
+        )}
+      </div>
+      <button
+        type="button"
+        onClick={()=> onChange(undefined)}
+        className="h-11 px-3 rounded-lg text-[11px] font-medium border border-neutral-300 dark:border-neutral-700 bg-neutral-100/70 dark:bg-neutral-800/60 text-neutral-600 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-700"
+      >Clear</button>
+    </div>
+  )
+}
+
+function formatAlarm12(hhmm:string){
+  const [h,m] = hhmm.split(':').map(n=>parseInt(n,10))
+  const per = h>=12? 'PM':'AM'
+  const h12 = ((h%12)||12)
+  return `${String(h12).padStart(2,'0')}:${String(m).padStart(2,'0')} ${per}`
 }

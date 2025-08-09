@@ -171,7 +171,11 @@ export default function WorldTimeDisplay({ isFullscreen, fsSearchOpen, onCloseSe
     }
   },[query, filtered.length, page])
 
-  const timeString = (tz: string) => format(getZonedTime(tz), preferences.showSeconds ? 'HH:mm:ss' : 'HH:mm')
+  const timeString = (tz: string) => {
+    const pattern24 = preferences.showSeconds ? 'HH:mm:ss' : 'HH:mm'
+    const pattern12 = preferences.showSeconds ? 'hh:mm:ss a' : 'hh:mm a'
+    return format(getZonedTime(tz), preferences.use24h ? pattern24 : pattern12)
+  }
   const accentGradient = 'bg-gradient-to-br from-[var(--accent-from)] to-[var(--accent-to)]'
 
   const renderTime = (tz: string, sizeClasses: string, weight: string = 'font-semibold') => {
@@ -330,7 +334,9 @@ export default function WorldTimeDisplay({ isFullscreen, fsSearchOpen, onCloseSe
                   {tz.offset && <span className="shrink-0 text-[10px] px-1.5 py-0.5 rounded-full bg-neutral-200/70 dark:bg-neutral-800/70 text-neutral-600 dark:text-neutral-300">{tz.offset}</span>}
                 </div>
                 <div className="flex items-end justify-between">
-                  <span className={`text-[1.35rem] font-semibold ${fontClass(preferences.font)} tabular-nums tracking-tight leading-none`}>{timeString(tz.timezone)}</span>
+                  <span className={`text-[1.35rem] font-semibold ${fontClass(preferences.font)} tabular-nums tracking-tight leading-none`}>
+                    {preferences.use24h ? timeString(tz.timezone) : timeString(tz.timezone)}
+                  </span>
                   {tz.abbreviation && <span className="text-[10px] text-neutral-400 tracking-wide uppercase">{tz.abbreviation}</span>}
                 </div>
                 {active && (
