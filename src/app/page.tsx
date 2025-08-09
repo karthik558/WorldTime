@@ -20,8 +20,28 @@ export default function Home() {
   const [fsSearchOpen, setFsSearchOpen] = useState(false)
   const { ready } = useAccurateUtcTime()
   const [showLoader, setShowLoader] = useState(true)
+  const [fsTransition, setFsTransition] = useState<null | 'enter' | 'exit'>(null)
+  const [fsAnimating, setFsAnimating] = useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const menuRef = useRef<HTMLDivElement|null>(null)
+  // Animated fullscreen transitions
+  const animatedSetFullscreen = (next: boolean) => {
+    if (fsAnimating) return
+    if (next && !isFullscreen) {
+      // Enter fullscreen immediately then run a subtle scale-in
+      setIsFullscreen(true)
+      setFsAnimating(true)
+      setFsTransition('enter')
+      setTimeout(()=>{ setFsTransition(null); setFsAnimating(false) }, 550)
+    } else if (!next && isFullscreen) {
+      // Animate scale-out then leave fullscreen
+      setFsAnimating(true)
+      setFsTransition('exit')
+      setTimeout(()=>{ setIsFullscreen(false); setFsSearchOpen(false); setFsTransition(null); setFsAnimating(false) }, 550)
+    } else {
+      setIsFullscreen(next)
+    }
+  }
 
   // Close mobile menu on outside tap
   useEffect(()=>{
@@ -42,6 +62,13 @@ export default function Home() {
   {showLoader && <Preloader minDurationMs={2600} onDone={()=>setShowLoader(false)} />}
   {/* Ambient only renders while in fullscreen and toggle enabled */}
   {preferences.fullscreen && preferences.bgAnimation && <AmbientBackground />}
+  <motion.div
+    key="fs-container"
+    animate={fsTransition==='enter' ? {scale:[0.97,1]} : fsTransition==='exit' ? {scale:[1,0.97]} : {scale:1}}
+    transition={{duration:0.5, ease:[0.4,0,0.2,1]}}
+    style={{transformOrigin:'50% 50%', pointerEvents: fsAnimating ? 'none':'auto'}}
+    className="will-change-transform"
+  >
       <div className="fixed right-3 z-[120]" style={{top:'calc(env(safe-area-inset-top,0px) + 0.75rem)'}} ref={menuRef}>
         {/* Desktop / larger screens toolbar */}
         <div className="hidden sm:flex gap-2 items-center">
@@ -49,7 +76,7 @@ export default function Home() {
           <ThemeToggle />
           {/* Ambient toggle shows only in fullscreen (as per requirement) */}
           {isFullscreen && <AmbientToggle />}
-          {!isFullscreen && <FullscreenToggle isFullscreen={isFullscreen} setIsFullscreen={setIsFullscreen} />}
+          {!isFullscreen && <FullscreenToggle isFullscreen={isFullscreen} setIsFullscreen={animatedSetFullscreen} />}
           {isFullscreen && (
             <>
               {preferences.showSelector && (
@@ -62,7 +89,7 @@ export default function Home() {
                   <svg width="18" height="18" viewBox="0 0 24 24" stroke="currentColor" fill="none"><circle cx="11" cy="11" r="7" strokeWidth="2"/><path strokeWidth="2" strokeLinecap="round" d="M21 21l-4.35-4.35"/></svg>
                 </button>
               )}
-              <button onClick={()=>{setIsFullscreen(false); setFsSearchOpen(false)}} className="p-2 rounded-md border border-neutral-300 dark:border-neutral-700 bg-neutral-100/70 dark:bg-neutral-900/70 hover:bg-neutral-200 dark:hover:bg-neutral-800 transition-colors relative" aria-label="Exit Fullscreen" style={{touchAction:'manipulation'}}>
+              <button onClick={()=>{animatedSetFullscreen(false); setFsSearchOpen(false)}} className="p-2 rounded-md border border-neutral-300 dark:border-neutral-700 bg-neutral-100/70 dark:bg-neutral-900/70 hover:bg-neutral-200 dark:hover:bg-neutral-800 transition-colors relative" aria-label="Exit Fullscreen" style={{touchAction:'manipulation'}}>
                 <svg width="20" height="20" viewBox="0 0 24 24" stroke="currentColor" fill="none"><path strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
               </button>
             </>
@@ -103,7 +130,7 @@ export default function Home() {
                     <SettingsPanel />
                     <ThemeToggle />
                     {isFullscreen && <AmbientToggle />}
-                    {!isFullscreen && <FullscreenToggle isFullscreen={isFullscreen} setIsFullscreen={setIsFullscreen} />}
+                    {!isFullscreen && <FullscreenToggle isFullscreen={isFullscreen} setIsFullscreen={animatedSetFullscreen} />}
                     {isFullscreen && preferences.showSelector && (
                       <button
                         onClick={()=>{setFsSearchOpen(true); setMobileMenuOpen(false)}}
@@ -114,7 +141,7 @@ export default function Home() {
                       </button>
                     )}
                     {isFullscreen && (
-                      <button onClick={()=>{setIsFullscreen(false); setFsSearchOpen(false); setMobileMenuOpen(false)}} className="p-2 rounded-md border border-neutral-300 dark:border-neutral-700 bg-neutral-100/70 dark:bg-neutral-900/70 hover:bg-neutral-200 dark:hover:bg-neutral-800 transition-colors flex items-center justify-center" aria-label="Exit Fullscreen">
+                      <button onClick={()=>{animatedSetFullscreen(false); setMobileMenuOpen(false)}} className="p-2 rounded-md border border-neutral-300 dark:border-neutral-700 bg-neutral-100/70 dark:bg-neutral-900/70 hover:bg-neutral-200 dark:hover:bg-neutral-800 transition-colors flex items-center justify-center" aria-label="Exit Fullscreen">
                         <svg width="18" height="18" viewBox="0 0 24 24" stroke="currentColor" fill="none"><path strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
                       </button>
                     )}
@@ -134,13 +161,14 @@ export default function Home() {
           </div>
         )}
       </div>
-      {!isFullscreen && (
+    {!isFullscreen && (
         <footer className="absolute inset-x-0 bottom-0 z-20 py-4 px-6 text-[11px] md:text-xs text-neutral-500 dark:text-neutral-500 flex items-center justify-center bg-gradient-to-t from-neutral-100/80 dark:from-neutral-900/70 via-neutral-100/40 dark:via-neutral-900/30 to-transparent backdrop-blur-sm border-t border-neutral-200/60 dark:border-neutral-800/60">
           <span className="flex items-center gap-1">
             © 2025 <a href="https://karthiklal.in" target="_blank" rel="noopener noreferrer" className="font-medium text-neutral-700 dark:text-neutral-300 hover:text-neutral-900 dark:hover:text-neutral-100 transition-colors underline-offset-2 hover:underline">WorldTime</a>. All rights reserved.
           </span>
         </footer>
       )}
+  </motion.div>
     </main>
   )
 }

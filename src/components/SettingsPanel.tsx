@@ -54,91 +54,94 @@ export default function SettingsPanel(){
         </AnimatePresence>,
         document.body
       )}
-      <AnimatePresence>
-        {open && (
-          <motion.div
-            initial={{opacity:0, y:-6, scale:.98}}
-            animate={{opacity:1, y:0, scale:1}}
-            exit={{opacity:0, y:-6, scale:.98}}
-            transition={{duration:.18}}
-            className="absolute right-0 mt-3 w-72 rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white/80 dark:bg-neutral-900/80 backdrop-blur-xl shadow-xl z-50 text-sm overflow-hidden"
-            role="dialog" aria-modal="true" aria-label="Settings panel"
-          >
-            <span className="pointer-events-none absolute inset-0 bg-gradient-to-br from-white/40 dark:from-neutral-900/40 to-transparent" />
-            <div className="flex items-center justify-between px-4 py-3 border-b border-neutral-200 dark:border-neutral-800">
-              <h3 className="font-medium text-xs tracking-wide uppercase text-neutral-600 dark:text-neutral-300">Preferences</h3>
-              <button onClick={()=>setOpen(false)} className="p-1 rounded hover:bg-neutral-200/60 dark:hover:bg-neutral-800/60">✕</button>
-            </div>
-            <div className="p-4 space-y-5 max-h-[70vh] overflow-auto">
-              <section className="space-y-3">
-                <Label>Style</Label>
-                <div className="grid grid-cols-3 gap-2">
-                  {accents.map(a=> {
-                    const active = preferences.accent===a
-                    return (
-                      <button
-                        key={a}
-                        onClick={()=>update('accent', a)}
-                        aria-label={a}
-                        className={`group relative h-16 rounded-lg overflow-hidden border text-[10px] uppercase tracking-wide font-medium flex items-end p-1.5 justify-start transition-all ${active? 'border-neutral-900 dark:border-neutral-200 shadow-sm':'border-neutral-300 dark:border-neutral-700 hover:border-neutral-500 dark:hover:border-neutral-500'}`}
-                      >
-                        <span className={`absolute inset-0 bg-gradient-to-br ${accentClass(a)} opacity-90`} />
-                        <span className="absolute inset-0 mix-blend-overlay" style={{ background: 'var(--accent-pattern)' }} />
-                        <span className="relative z-10 px-1 py-0.5 rounded bg-neutral-900/60 dark:bg-neutral-900/60 text-white shadow text-[9px]">{a}</span>
-                        {active && <span className="absolute inset-0 ring-2 ring-offset-1 ring-neutral-900 dark:ring-neutral-100 rounded-lg" />}
-                      </button>
-                    )
-                  })}
-                </div>
-              </section>
-              <section className="space-y-3">
-                <Label>Font</Label>
-    <div className="grid grid-cols-3 gap-2">
-                  {fonts.map(f=> {
-                    const active = preferences.font===f.value
-                    return (
-                      <button key={f.value} onClick={()=>update('font', f.value)}
-      className={`relative h-11 rounded-lg border text-[11px] flex items-center justify-center px-1 transition group overflow-hidden ${active?'border-neutral-700 dark:border-neutral-300 bg-neutral-100/90 dark:bg-neutral-800/80 shadow-sm':'border-neutral-300 dark:border-neutral-700 hover:bg-neutral-100/60 dark:hover:bg-neutral-800/60'}`}
-                      >
-      <span className={`${fontClass(f.value)} leading-none tracking-tight`}>{f.label}</span>
-                        {active && <span className={`absolute inset-x-0 bottom-0 h-0.5 bg-gradient-to-r ${accentClass(preferences.accent)}`}></span>}
-                      </button>
-                    )
-                  })}
-                </div>
-                <div className="pt-2">
-                  <Label>Font Size</Label>
-                  <div className="flex items-center gap-2 mt-1">
-                    <input
-                      type="range"
-                      min={0.6}
-                      max={1.4}
-                      step={0.05}
-                      value={preferences.fontScale}
-                      onChange={e=>update('fontScale', parseFloat(e.target.value))}
-                      className="w-full accent-[var(--accent-solid)]"
-                    />
-                    <span className="tabular-nums text-[10px] w-8 text-right">{(preferences.fontScale*100).toFixed(0)}%</span>
-                  </div>
-                </div>
-              </section>
-              <section className="space-y-2">
-                <Label>Display</Label>
-                <Toggle label="Seconds" value={preferences.showSeconds} onChange={v=>update('showSeconds', v)} />
-                <Toggle label="Date" value={preferences.showDate} onChange={v=>update('showDate', v)} />
-                <Toggle label="Search Bar" value={preferences.showSelector} onChange={v=>update('showSelector', v)} />
-                <Toggle label="Cards" value={preferences.showCityCards} onChange={v=>update('showCityCards', v)} />
-                <Toggle label="Quotes" value={preferences.showQuotes} onChange={v=>update('showQuotes', v)} />
-              </section>
-              {/* Ambient animation toggle moved to header (fullscreen only) */}
-              <div className="pt-2 flex justify-between border-t border-neutral-200 dark:border-neutral-800">
-                <button onClick={reset} className="text-[11px] text-neutral-500 hover:text-neutral-800 dark:hover:text-neutral-200">Reset</button>
-                <button onClick={()=>setOpen(false)} className="text-[11px] px-3 py-1.5 rounded-md bg-neutral-900 text-white dark:bg-white dark:text-neutral-900 hover:opacity-90 transition">Done</button>
+      {open && typeof window !== 'undefined' && createPortal(
+        <AnimatePresence>
+          {open && (
+            <motion.div
+              key="panel"
+              initial={{opacity:0, y:-6, scale:.98}}
+              animate={{opacity:1, y:0, scale:1}}
+              exit={{opacity:0, y:-6, scale:.98}}
+              transition={{duration:.18}}
+              className="fixed top-[calc(env(safe-area-inset-top,0px)+3.25rem)] right-3 sm:right-3 w-72 rounded-xl border border-neutral-200 dark:border-neutral-700 bg-white/95 dark:bg-neutral-900/95 shadow-xl z-[400] text-sm overflow-hidden text-neutral-800 dark:text-neutral-100"
+              role="dialog" aria-modal="true" aria-label="Settings panel"
+            >
+              <span className="pointer-events-none absolute inset-0 bg-gradient-to-br from-white/30 dark:from-neutral-800/30 to-transparent" />
+              <div className="flex items-center justify-between px-4 py-3 border-b border-neutral-200 dark:border-neutral-700">
+                <h3 className="font-semibold text-[11px] tracking-wide uppercase text-neutral-700 dark:text-neutral-100">Preferences</h3>
+                <button onClick={()=>setOpen(false)} className="p-1 rounded hover:bg-neutral-200/60 dark:hover:bg-neutral-800/60">✕</button>
               </div>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+              <div className="p-4 space-y-5 max-h-[70vh] overflow-auto">
+                <section className="space-y-3">
+                  <Label>Style</Label>
+                  <div className="grid grid-cols-3 gap-2">
+                    {accents.map(a=> {
+                      const active = preferences.accent===a
+                      return (
+                        <button
+                          key={a}
+                          onClick={()=>update('accent', a)}
+                          aria-label={a}
+                          className={`group relative h-16 rounded-lg overflow-hidden border text-[10px] uppercase tracking-wide font-medium flex items-end p-1.5 justify-start transition-all ${active? 'border-neutral-900 dark:border-neutral-200 shadow-sm':'border-neutral-300 dark:border-neutral-700 hover:border-neutral-500 dark:hover:border-neutral-500'}`}
+                        >
+                          <span className={`absolute inset-0 bg-gradient-to-br ${accentClass(a)} opacity-90`} />
+                          <span className="absolute inset-0 mix-blend-overlay" style={{ background: 'var(--accent-pattern)' }} />
+                          <span className="relative z-10 px-1 py-0.5 rounded bg-neutral-900/65 dark:bg-neutral-800/70 text-white shadow text-[9px]">{a}</span>
+                          {active && <span className="absolute inset-0 ring-2 ring-offset-1 ring-neutral-900 dark:ring-neutral-100 rounded-lg" />}
+                        </button>
+                      )
+                    })}
+                  </div>
+                </section>
+                <section className="space-y-3">
+                  <Label>Font</Label>
+                  <div className="grid grid-cols-3 gap-2">
+                    {fonts.map(f=> {
+                      const active = preferences.font===f.value
+                      return (
+                        <button key={f.value} onClick={()=>update('font', f.value)}
+          className={`relative h-11 rounded-lg border text-[11px] flex items-center justify-center px-1 transition group overflow-hidden ${active?'border-neutral-700 dark:border-neutral-300 bg-neutral-100/90 dark:bg-neutral-800/80 shadow-sm':'border-neutral-300 dark:border-neutral-700 hover:bg-neutral-100/60 dark:hover:bg-neutral-800/60'}`}
+                        >
+          <span className={`${fontClass(f.value)} leading-none tracking-tight`}>{f.label}</span>
+                          {active && <span className={`absolute inset-x-0 bottom-0 h-0.5 bg-gradient-to-r ${accentClass(preferences.accent)}`}></span>}
+                        </button>
+                      )
+                    })}
+                  </div>
+                  <div className="pt-2">
+                    <Label>Font Size</Label>
+                    <div className="flex items-center gap-2 mt-1">
+                      <input
+                        type="range"
+                        min={0.6}
+                        max={1.4}
+                        step={0.05}
+                        value={preferences.fontScale}
+                        onChange={e=>update('fontScale', parseFloat(e.target.value))}
+                        className="w-full accent-[var(--accent-solid)]"
+                      />
+                      <span className="tabular-nums text-[10px] w-8 text-right">{(preferences.fontScale*100).toFixed(0)}%</span>
+                    </div>
+                  </div>
+                </section>
+                <section className="space-y-2">
+                  <Label>Display</Label>
+                  <Toggle label="Seconds" value={preferences.showSeconds} onChange={v=>update('showSeconds', v)} />
+                  <Toggle label="Date" value={preferences.showDate} onChange={v=>update('showDate', v)} />
+                  <Toggle label="Search Bar" value={preferences.showSelector} onChange={v=>update('showSelector', v)} />
+                  <Toggle label="Cards" value={preferences.showCityCards} onChange={v=>update('showCityCards', v)} />
+                  <Toggle label="Quotes" value={preferences.showQuotes} onChange={v=>update('showQuotes', v)} />
+                </section>
+                <div className="pt-2 flex justify-between border-t border-neutral-200 dark:border-neutral-800">
+                  <button onClick={reset} className="text-[11px] text-neutral-500 hover:text-neutral-800 dark:hover:text-neutral-200">Reset</button>
+                  <button onClick={()=>setOpen(false)} className="text-[11px] px-3 py-1.5 rounded-md bg-neutral-900 text-white dark:bg-white dark:text-neutral-900 hover:opacity-90 transition">Done</button>
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>,
+        document.body
+      )}
     </div>
   )
 }
@@ -148,7 +151,7 @@ function GroupLabel({children}:{children:React.ReactNode}){
 }
 
 function Label({children}:{children:React.ReactNode}){
-  return <p className="uppercase tracking-wide text-[10px] font-medium text-neutral-500 dark:text-neutral-400">{children}</p>
+  return <p className="uppercase tracking-wide text-[10px] font-medium text-neutral-600 dark:text-neutral-300">{children}</p>
 }
 
 function Toggle({label, value, onChange}:{label:string; value:boolean; onChange:(v:boolean)=>void}){
