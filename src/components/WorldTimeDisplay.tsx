@@ -333,7 +333,12 @@ export default function WorldTimeDisplay({ isFullscreen, fsSearchOpen, onCloseSe
                   <span className={`text-[1.35rem] font-semibold ${fontClass(preferences.font)} tabular-nums tracking-tight leading-none`}>{timeString(tz.timezone)}</span>
                   {tz.abbreviation && <span className="text-[10px] text-neutral-400 tracking-wide uppercase">{tz.abbreviation}</span>}
                 </div>
-                {active && <span className={`absolute inset-x-4 bottom-1 h-0.5 rounded bg-gradient-to-r ${accentClass(preferences.accent)}`}></span>}
+                {active && (
+                  <span className={`absolute inset-x-4 bottom-1 h-0.5 rounded overflow-hidden`}>
+                    <span className={`absolute inset-0 bg-gradient-to-r ${accentClass(preferences.accent)}`} />
+                    <span className="absolute inset-0 opacity-60" style={{background:'var(--accent-pattern)'}} />
+                  </span>
+                )}
               </button>
             )
           })}

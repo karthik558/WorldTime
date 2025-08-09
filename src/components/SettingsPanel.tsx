@@ -3,7 +3,8 @@ import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { usePreferences, AccentColor, TimeFont, accentClass, fontClass } from './PreferencesProvider'
 
-const accents: AccentColor[] = ['blue','sky','emerald','teal','lime','amber','rose','fuchsia','violet','indigo']
+// Updated curated accent styles
+const accents: AccentColor[] = ['ocean','forest','sunset','blossom','aurora','midnight']
 const fonts: { label: string; value: TimeFont }[] = [
   { label: 'Mono', value: 'mono' },
   { label: 'Sans', value: 'sans' },
@@ -43,15 +44,21 @@ export default function SettingsPanel(){
             </div>
             <div className="p-4 space-y-5 max-h-[70vh] overflow-auto">
               <section className="space-y-3">
-                <Label>Accent</Label>
-                <div className="flex gap-2 flex-wrap">
+                <Label>Style</Label>
+                <div className="grid grid-cols-3 gap-2">
                   {accents.map(a=> {
                     const active = preferences.accent===a
                     return (
-                      <button key={a} onClick={()=>update('accent', a)} aria-label={a}
-                        className={`h-7 w-7 rounded-full ring-2 transition relative bg-gradient-to-br ${accentClass(a)} ${active? 'ring-neutral-900 dark:ring-neutral-100 scale-105':'ring-transparent hover:ring-neutral-400/50 dark:hover:ring-neutral-600/50 hover:scale-105'}`}
+                      <button
+                        key={a}
+                        onClick={()=>update('accent', a)}
+                        aria-label={a}
+                        className={`group relative h-16 rounded-lg overflow-hidden border text-[10px] uppercase tracking-wide font-medium flex items-end p-1.5 justify-start transition-all ${active? 'border-neutral-900 dark:border-neutral-200 shadow-sm':'border-neutral-300 dark:border-neutral-700 hover:border-neutral-500 dark:hover:border-neutral-500'}`}
                       >
-                        {active && <span className="absolute inset-0 rounded-full border border-white/40 dark:border-white/20" />}
+                        <span className={`absolute inset-0 bg-gradient-to-br ${accentClass(a)} opacity-90`} />
+                        <span className="absolute inset-0 mix-blend-overlay" style={{ background: 'var(--accent-pattern)' }} />
+                        <span className="relative z-10 px-1 py-0.5 rounded bg-neutral-900/60 dark:bg-neutral-900/60 text-white shadow text-[9px]">{a}</span>
+                        {active && <span className="absolute inset-0 ring-2 ring-offset-1 ring-neutral-900 dark:ring-neutral-100 rounded-lg" />}
                       </button>
                     )
                   })}
