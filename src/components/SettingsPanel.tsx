@@ -1,5 +1,6 @@
 "use client"
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { usePreferences, AccentColor, TimeFont, accentClass, fontClass } from './PreferencesProvider'
 
@@ -17,6 +18,14 @@ const fonts: { label: string; value: TimeFont }[] = [
 export default function SettingsPanel(){
   const { preferences, update, reset } = usePreferences()
   const [open,setOpen] = useState(false)
+  // Body scroll lock when panel open
+  useEffect(() => {
+    if (open) {
+      const prev = document.body.style.overflow
+      document.body.style.overflow = 'hidden'
+      return () => { document.body.style.overflow = prev }
+    }
+  }, [open])
   return (
     <div className="relative">
       <button
@@ -29,6 +38,22 @@ export default function SettingsPanel(){
           <circle cx="12" cy="12" r="3" strokeWidth="2" />
         </svg>
       </button>
+      {/* Overlay portal */}
+      {open && typeof window !== 'undefined' && createPortal(
+        <AnimatePresence>
+          <motion.button
+            key="overlay"
+            initial={{opacity:0}}
+            animate={{opacity:1}}
+            exit={{opacity:0}}
+            transition={{duration:.18}}
+            aria-label="Close settings"
+            onClick={()=>setOpen(false)}
+            className="fixed inset-0 bg-neutral-950/45 dark:bg-black/55 backdrop-blur-sm z-40 cursor-default"
+          />
+        </AnimatePresence>,
+        document.body
+      )}
       <AnimatePresence>
         {open && (
           <motion.div
@@ -37,7 +62,9 @@ export default function SettingsPanel(){
             exit={{opacity:0, y:-6, scale:.98}}
             transition={{duration:.18}}
             className="absolute right-0 mt-3 w-72 rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white/80 dark:bg-neutral-900/80 backdrop-blur-xl shadow-xl z-50 text-sm overflow-hidden"
+            role="dialog" aria-modal="true" aria-label="Settings panel"
           >
+            <span className="pointer-events-none absolute inset-0 bg-gradient-to-br from-white/40 dark:from-neutral-900/40 to-transparent" />
             <div className="flex items-center justify-between px-4 py-3 border-b border-neutral-200 dark:border-neutral-800">
               <h3 className="font-medium text-xs tracking-wide uppercase text-neutral-600 dark:text-neutral-300">Preferences</h3>
               <button onClick={()=>setOpen(false)} className="p-1 rounded hover:bg-neutral-200/60 dark:hover:bg-neutral-800/60">✕</button>
