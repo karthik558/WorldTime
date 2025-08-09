@@ -46,6 +46,8 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
         <link rel="apple-touch-icon" href="/icons/icon-192.png" />
+  <link rel="icon" type="image/png" href="/favicon.png" />
+  <link rel="shortcut icon" href="/favicon.png" />
       </head>
   <body className={`${inter.variable} ${mono.variable} ${serif.variable} ${wideFont.variable} ${thinFont.variable}`}>
         <ThemeProvider>
