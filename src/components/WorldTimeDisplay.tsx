@@ -73,7 +73,7 @@ interface WorldTimeDisplayProps {
 
 export default function WorldTimeDisplay({ isFullscreen, fsSearchOpen, onCloseSearch }: WorldTimeDisplayProps) {
   // Use network-synced base UTC time
-  const accurateUtc = useAccurateUtcTime()
+  const { now: accurateNow } = useAccurateUtcTime()
   const [mounted, setMounted] = useState(false)
   useEffect(()=>{ setMounted(true) },[])
   const detectTz = () => {
@@ -107,7 +107,7 @@ export default function WorldTimeDisplay({ isFullscreen, fsSearchOpen, onCloseSe
 
   // We rely entirely on the network-synced time from the hook; no extra device interval.
 
-  const getZonedTime = (timezone: string) => utcToZonedTime(accurateUtc, timezone)
+  const getZonedTime = (timezone: string) => utcToZonedTime(accurateNow, timezone)
 
   const filtered = useMemo(()=>{
     const baseList = timeZones
@@ -233,7 +233,7 @@ export default function WorldTimeDisplay({ isFullscreen, fsSearchOpen, onCloseSe
               <button
                 key={tz.name}
                 onClick={() => { setSelectedTimezone(tz); update('selectedTimezone', tz.timezone) }}
-                className={`group relative text-left rounded-xl transition-all p-4 flex flex-col gap-2 border backdrop-blur-sm ${active? 'border-neutral-900 dark:border-neutral-200 bg-neutral-100/80 dark:bg-neutral-800/70 shadow-sm ring-2 '+ringAccent(preferences.accent):'border-neutral-200/70 dark:border-neutral-800/70 hover:border-neutral-400 dark:hover:border-neutral-600 bg-neutral-50/50 dark:bg-neutral-900/40'}`}
+                className={`group relative text-left rounded-xl transition-all p-4 flex flex-col gap-2 border backdrop-blur-sm ${active? 'border-neutral-900 dark:border-neutral-200 bg-neutral-100/80 dark:bg-neutral-800/70 shadow ring-2 '+ringAccent(preferences.accent):'border-neutral-200/70 dark:border-neutral-800/70 hover:border-neutral-400 dark:hover:border-neutral-600 hover:shadow-sm bg-neutral-50/40 dark:bg-neutral-900/30'}`}
               >
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex flex-col min-w-0">
@@ -245,8 +245,8 @@ export default function WorldTimeDisplay({ isFullscreen, fsSearchOpen, onCloseSe
                   {tz.offset && <span className="shrink-0 text-[10px] px-1.5 py-0.5 rounded-full bg-neutral-200/70 dark:bg-neutral-800/70 text-neutral-600 dark:text-neutral-300">{tz.offset}</span>}
                 </div>
                 <div className="flex items-end justify-between">
-                  <span className={`text-xl font-semibold ${fontClass(preferences.font)} tabular-nums tracking-tight`}>{timeString(tz.timezone)}</span>
-                  {tz.abbreviation && <span className="text-[10px] text-neutral-400">{tz.abbreviation}</span>}
+                  <span className={`text-[1.35rem] font-semibold ${fontClass(preferences.font)} tabular-nums tracking-tight leading-none`}>{timeString(tz.timezone)}</span>
+                  {tz.abbreviation && <span className="text-[10px] text-neutral-400 tracking-wide uppercase">{tz.abbreviation}</span>}
                 </div>
                 {active && <span className={`absolute inset-x-4 bottom-1 h-0.5 rounded bg-gradient-to-r ${accentClass(preferences.accent)}`}></span>}
               </button>

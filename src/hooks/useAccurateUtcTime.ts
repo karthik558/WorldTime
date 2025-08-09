@@ -7,6 +7,7 @@ export function useAccurateUtcTime() {
   const [baseUtcMs, setBaseUtcMs] = useState<number>(() => Date.now())
   const [deviceBaseMs, setDeviceBaseMs] = useState<number>(() => Date.now())
   const [tick, setTick] = useState(0)
+  const [ready, setReady] = useState(false)
   const abortRef = useRef<AbortController | null>(null)
 
   useEffect(() => {
@@ -27,12 +28,14 @@ export function useAccurateUtcTime() {
           if (utcMs && !Number.isNaN(utcMs)) {
             setBaseUtcMs(utcMs)
             setDeviceBaseMs(Date.now())
+            setReady(true)
           }
         })
         .catch(() => {
           // swallow; fallback to device time
           setBaseUtcMs(Date.now())
           setDeviceBaseMs(Date.now())
+          setReady(true)
         })
     }
     fetchUtc()
@@ -46,5 +49,5 @@ export function useAccurateUtcTime() {
   }, [])
 
   const nowMs = baseUtcMs + (Date.now() - deviceBaseMs)
-  return new Date(nowMs)
+  return { now: new Date(nowMs), ready }
 }

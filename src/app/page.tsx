@@ -7,14 +7,19 @@ import ThemeToggle from '../components/ThemeToggle'
 import FullscreenToggle from '../components/FullscreenToggle'
 import SettingsPanel from '../components/SettingsPanel'
 import { usePreferences } from '../components/PreferencesProvider'
+import Preloader from '../components/Preloader'
+import { useAccurateUtcTime } from '../hooks/useAccurateUtcTime'
 
 export default function Home() {
   const [isFullscreen, setIsFullscreen] = useState(false)
   const [fsSearchOpen, setFsSearchOpen] = useState(false)
   const { preferences } = usePreferences()
+  const { ready } = useAccurateUtcTime()
+  const [showLoader, setShowLoader] = useState(true)
 
   return (
     <main className="relative min-h-screen bg-neutral-50 dark:bg-neutral-950 text-neutral-900 dark:text-neutral-100 transition-colors duration-300 font-sans overflow-hidden">
+  {showLoader && <Preloader minDurationMs={2600} onDone={()=>setShowLoader(false)} />}
       {preferences.bgAnimation && (
         <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden>
           <div className="absolute inset-0 ambient-gradient opacity-40 mix-blend-overlay bg-[radial-gradient(circle_at_30%_30%,var(--accent-from),transparent_60%),radial-gradient(circle_at_70%_70%,var(--accent-to),transparent_55%)]" />
