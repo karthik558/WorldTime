@@ -23,6 +23,10 @@ interface Preferences {
   alarmTime?: string // HH:MM in local time
   alarmEnabled?: boolean
   use24h: boolean
+  pinnedTimezones: string[]
+  dockMode: boolean
+  autoAccent: boolean
+  reduceMotion: boolean
 }
 
 interface PreferencesContextType {
@@ -49,6 +53,10 @@ const DEFAULT: Preferences = {
   alarmTime: undefined,
   alarmEnabled: false,
   use24h: true,
+  pinnedTimezones: [],
+  dockMode: false,
+  autoAccent: false,
+  reduceMotion: false,
 }
 
 const PreferencesContext = createContext<PreferencesContextType | undefined>(undefined)
@@ -69,6 +77,14 @@ export function PreferencesProvider({ children }: { children: ReactNode }) {
         if (!allowed.includes(parsed.accent)) parsed.accent = 'ocean'
         setPreferences({ ...DEFAULT, ...parsed })
       }
+    } catch {}
+    // Detect reduced motion user preference (non-persistent; stored each load)
+    try {
+      const mq = window.matchMedia('(prefers-reduced-motion: reduce)')
+      const setRM = () => setPreferences(p=>({...p, reduceMotion: mq.matches}))
+      setRM()
+      mq.addEventListener('change', setRM)
+      return () => mq.removeEventListener('change', setRM)
     } catch {}
     setLoaded(true)
   }, [])
@@ -96,6 +112,24 @@ export function PreferencesProvider({ children }: { children: ReactNode }) {
     root.style.setProperty('--accent-solid', a.solid)
     root.style.setProperty('--accent-pattern', a.pattern)
   }, [preferences.accent])
+
+  // Auto accent theme based on time-of-day when enabled
+  useEffect(()=>{
+    if(!preferences.autoAccent) return
+    const apply = () => {
+      const hour = new Date().getHours()
+      let next: AccentColor
+      if(hour >= 5 && hour < 9) next = 'blossom' // sunrise
+      else if(hour >=9 && hour < 17) next = 'ocean' // day
+      else if(hour >=17 && hour < 21) next = 'sunset' // sunset
+      else if(hour >=21 || hour < 5) next = 'midnight' // night
+      else next = 'ocean'
+      setPreferences(p=> p.accent === next ? p : ({...p, accent: next}))
+    }
+    apply()
+    const id = setInterval(apply, 60 * 1000) // check each minute
+    return ()=> clearInterval(id)
+  },[preferences.autoAccent])
 
   const update = (key: keyof Preferences, value: any) => {
     setPreferences(p => ({ ...p, [key]: value }))
