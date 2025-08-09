@@ -1,6 +1,7 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
 import WorldTimeDisplay from '../components/WorldTimeDisplay'
 import TimeQuotes from '../components/TimeQuotes'
 import ThemeToggle from '../components/ThemeToggle'
@@ -16,6 +17,22 @@ export default function Home() {
   const { preferences } = usePreferences()
   const { ready } = useAccurateUtcTime()
   const [showLoader, setShowLoader] = useState(true)
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const menuRef = useRef<HTMLDivElement|null>(null)
+
+  // Close mobile menu on outside tap
+  useEffect(()=>{
+    const handler = (e: Event)=> {
+      if(menuRef.current && !menuRef.current.contains(e.target as Node)){
+        setMobileMenuOpen(false)
+      }
+    }
+    if(mobileMenuOpen){
+      document.addEventListener('mousedown', handler)
+      document.addEventListener('touchstart', handler)
+    }
+    return ()=>{ document.removeEventListener('mousedown', handler); document.removeEventListener('touchstart', handler) }
+  },[mobileMenuOpen])
 
   return (
     <main className="relative min-h-screen bg-neutral-50 dark:bg-neutral-950 text-neutral-900 dark:text-neutral-100 transition-colors duration-300 font-sans overflow-hidden">
@@ -25,31 +42,86 @@ export default function Home() {
           <div className="absolute inset-0 ambient-gradient opacity-40 mix-blend-overlay bg-[radial-gradient(circle_at_30%_30%,var(--accent-from),transparent_60%),radial-gradient(circle_at_70%_70%,var(--accent-to),transparent_55%)]" />
         </div>
       )}
-      {!isFullscreen && (
-        <div className="fixed top-3 right-3 z-50 flex gap-2 items-center">
+      <div className="fixed right-3 z-[120]" style={{top:'calc(env(safe-area-inset-top,0px) + 0.75rem)'}} ref={menuRef}>
+        {/* Desktop / larger screens toolbar */}
+        <div className="hidden sm:flex gap-2 items-center">
           <SettingsPanel />
           <ThemeToggle />
-          <FullscreenToggle isFullscreen={isFullscreen} setIsFullscreen={setIsFullscreen} />
-        </div>
-      )}
-      {isFullscreen && (
-        <div className="fixed top-3 right-3 z-50 flex gap-2 items-center">
-          <SettingsPanel />
-          <ThemeToggle />
-          {preferences.showSelector && (
-            <button
-              onClick={()=>setFsSearchOpen(true)}
-              aria-label="Search timezones"
-              className="p-2 rounded-md border border-neutral-300 dark:border-neutral-700 bg-neutral-100/70 dark:bg-neutral-900/70 hover:bg-neutral-200 dark:hover:bg-neutral-800 transition-colors"
-            >
-              <svg width="18" height="18" viewBox="0 0 24 24" stroke="currentColor" fill="none"><circle cx="11" cy="11" r="7" strokeWidth="2"/><path strokeWidth="2" strokeLinecap="round" d="M21 21l-4.35-4.35"/></svg>
-            </button>
+          {!isFullscreen && <FullscreenToggle isFullscreen={isFullscreen} setIsFullscreen={setIsFullscreen} />}
+          {isFullscreen && (
+            <>
+              {preferences.showSelector && (
+                <button
+                  onClick={()=>setFsSearchOpen(true)}
+                  aria-label="Search timezones"
+                  className="p-2 rounded-md border border-neutral-300 dark:border-neutral-700 bg-neutral-100/70 dark:bg-neutral-900/70 hover:bg-neutral-200 dark:hover:bg-neutral-800 transition-colors relative"
+                  style={{touchAction:'manipulation'}}
+                >
+                  <svg width="18" height="18" viewBox="0 0 24 24" stroke="currentColor" fill="none"><circle cx="11" cy="11" r="7" strokeWidth="2"/><path strokeWidth="2" strokeLinecap="round" d="M21 21l-4.35-4.35"/></svg>
+                </button>
+              )}
+              <button onClick={()=>{setIsFullscreen(false); setFsSearchOpen(false)}} className="p-2 rounded-md border border-neutral-300 dark:border-neutral-700 bg-neutral-100/70 dark:bg-neutral-900/70 hover:bg-neutral-200 dark:hover:bg-neutral-800 transition-colors relative" aria-label="Exit Fullscreen" style={{touchAction:'manipulation'}}>
+                <svg width="20" height="20" viewBox="0 0 24 24" stroke="currentColor" fill="none"><path strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+              </button>
+            </>
           )}
-          <button onClick={()=>{setIsFullscreen(false); setFsSearchOpen(false)}} className="p-2 rounded-md border border-neutral-300 dark:border-neutral-700 bg-neutral-100/70 dark:bg-neutral-900/70 hover:bg-neutral-200 dark:hover:bg-neutral-800 transition-colors" aria-label="Exit Fullscreen">
-            <svg width="20" height="20" viewBox="0 0 24 24" stroke="currentColor" fill="none"><path strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
-          </button>
         </div>
-      )}
+        {/* Mobile hamburger */}
+        <div className="sm:hidden flex items-center">
+          <motion.button
+            onClick={()=>setMobileMenuOpen(o=>!o)}
+            aria-label={mobileMenuOpen? 'Close menu':'Menu'}
+            className="p-2 rounded-md border border-neutral-300 dark:border-neutral-700 bg-neutral-100/80 dark:bg-neutral-900/80 hover:bg-neutral-200 dark:hover:bg-neutral-800 transition-colors relative flex items-center justify-center"
+            style={{touchAction:'manipulation', WebkitTapHighlightColor:'transparent'}}
+            whileTap={{scale:0.9}}
+          >
+            <div className="w-5 h-5 relative" aria-hidden>
+              <motion.span className="absolute left-0 right-0 h-0.5 bg-current rounded" style={{top:4}} animate={mobileMenuOpen?{top:'50%', rotate:45}:{top:4, rotate:0}} transition={{duration:.18}} />
+              <motion.span className="absolute left-0 right-0 h-0.5 bg-current rounded" style={{top:'50%', transform:'translateY(-50%)'}} animate={mobileMenuOpen?{opacity:0}:{opacity:1}} transition={{duration:.12}} />
+              <motion.span className="absolute left-0 right-0 h-0.5 bg-current rounded" style={{bottom:4}} animate={mobileMenuOpen?{bottom:'50%', rotate:-45}:{bottom:4, rotate:0}} transition={{duration:.18}} />
+            </div>
+          </motion.button>
+          <AnimatePresence>
+            {mobileMenuOpen && (
+              <motion.div
+                initial={{opacity:0, y:-10}}
+                animate={{opacity:1, y:0}}
+                exit={{opacity:0, y:-8}}
+                transition={{duration:.18, ease:'easeOut'}}
+                className="absolute right-0 mt-2 rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white/90 dark:bg-neutral-900/90 backdrop-blur-xl shadow-xl px-3 py-3 flex flex-col gap-3"
+              >
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] uppercase tracking-wide text-neutral-500 dark:text-neutral-400">Menu</span>
+                  <button aria-label="Close menu" onClick={()=>setMobileMenuOpen(false)} className="p-2 rounded-md hover:bg-neutral-200/70 dark:hover:bg-neutral-800/70 transition-colors">
+                    <svg width="14" height="14" viewBox="0 0 24 24" stroke="currentColor" fill="none"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                  </button>
+                </div>
+                <div className="flex gap-2">
+                  <div className="flex gap-2">
+                    <SettingsPanel />
+                    <ThemeToggle />
+                    {!isFullscreen && <FullscreenToggle isFullscreen={isFullscreen} setIsFullscreen={setIsFullscreen} />}
+                    {isFullscreen && preferences.showSelector && (
+                      <button
+                        onClick={()=>{setFsSearchOpen(true); setMobileMenuOpen(false)}}
+                        aria-label="Search timezones"
+                        className="p-2 rounded-md border border-neutral-300 dark:border-neutral-700 bg-neutral-100/70 dark:bg-neutral-900/70 hover:bg-neutral-200 dark:hover:bg-neutral-800 transition-colors flex items-center justify-center"
+                      >
+                        <svg width="18" height="18" viewBox="0 0 24 24" stroke="currentColor" fill="none"><circle cx="11" cy="11" r="7" strokeWidth="2"/><path strokeWidth="2" strokeLinecap="round" d="M21 21l-4.35-4.35"/></svg>
+                      </button>
+                    )}
+                    {isFullscreen && (
+                      <button onClick={()=>{setIsFullscreen(false); setFsSearchOpen(false); setMobileMenuOpen(false)}} className="p-2 rounded-md border border-neutral-300 dark:border-neutral-700 bg-neutral-100/70 dark:bg-neutral-900/70 hover:bg-neutral-200 dark:hover:bg-neutral-800 transition-colors flex items-center justify-center" aria-label="Exit Fullscreen">
+                        <svg width="18" height="18" viewBox="0 0 24 24" stroke="currentColor" fill="none"><path strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+      </div>
       <div className={`relative z-10 ${isFullscreen ? 'h-screen' : 'min-h-screen'} px-4`}>        
         <WorldTimeDisplay isFullscreen={isFullscreen} fsSearchOpen={fsSearchOpen} onCloseSearch={()=>setFsSearchOpen(false)} />
         {preferences.showQuotes && !isFullscreen && <TimeQuotes />}
