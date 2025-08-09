@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { format, utcToZonedTime } from 'date-fns-tz'
+import { formatInTimeZone } from 'date-fns-tz'
 import { usePreferences, fontClass, accentClass, ringAccent } from './PreferencesProvider'
 import { countryTimezones, topCountryCodes } from '../data/countryTimezones'
 import { useMemo, useRef } from 'react'
@@ -146,7 +146,7 @@ export default function WorldTimeDisplay({ isFullscreen, fsSearchOpen, onCloseSe
 
   // We rely entirely on the network-synced time from the hook; no extra device interval.
 
-  const getZonedTime = (timezone: string) => utcToZonedTime(accurateNow, timezone)
+  const formatAt = (timezone: string, pattern: string) => formatInTimeZone(accurateNow, timezone, pattern)
 
   const filtered = useMemo(()=>{
     let baseList = timeZones
@@ -174,7 +174,7 @@ export default function WorldTimeDisplay({ isFullscreen, fsSearchOpen, onCloseSe
   const timeString = (tz: string) => {
     const pattern24 = preferences.showSeconds ? 'HH:mm:ss' : 'HH:mm'
     const pattern12 = preferences.showSeconds ? 'hh:mm:ss a' : 'hh:mm a'
-    return format(getZonedTime(tz), preferences.use24h ? pattern24 : pattern12)
+  return formatAt(tz, preferences.use24h ? pattern24 : pattern12)
   }
   const accentGradient = 'bg-gradient-to-br from-[var(--accent-from)] to-[var(--accent-to)]'
 
@@ -206,8 +206,8 @@ export default function WorldTimeDisplay({ isFullscreen, fsSearchOpen, onCloseSe
           <h1 className="text-base md:text-lg font-medium tracking-wide text-neutral-500 dark:text-neutral-400">
             {selectedTimezone.name}
           </h1>
-          {preferences.showDate && (
-            <p className="text-sm text-neutral-500 dark:text-neutral-400">{format(getZonedTime(selectedTimezone.timezone), 'EEEE, MMM d, yyyy')}</p>
+            {preferences.showDate && (
+            <p className="text-sm text-neutral-500 dark:text-neutral-400">{formatAt(selectedTimezone.timezone, 'EEEE, MMM d, yyyy')}</p>
           )}
           <p className="text-xs text-neutral-400 dark:text-neutral-500">
             {selectedTimezone.abbreviation} {selectedTimezone.offset}
@@ -278,7 +278,7 @@ export default function WorldTimeDisplay({ isFullscreen, fsSearchOpen, onCloseSe
           <div className="flex flex-col items-center gap-1">
             <p className="text-sm text-neutral-500 dark:text-neutral-400">{selectedTimezone.flag} {selectedTimezone.name}</p>
             {preferences.showDate && (
-              <p className="text-xs text-neutral-500 dark:text-neutral-500">{format(getZonedTime(selectedTimezone.timezone), 'EEEE, MMM d, yyyy')}</p>
+              <p className="text-xs text-neutral-500 dark:text-neutral-500">{formatAt(selectedTimezone.timezone, 'EEEE, MMM d, yyyy')}</p>
             )}
           </div>
         </div>
@@ -328,7 +328,7 @@ export default function WorldTimeDisplay({ isFullscreen, fsSearchOpen, onCloseSe
                   <div className="flex flex-col min-w-0">
                     <span className="text-[11px] uppercase tracking-wide text-neutral-500 dark:text-neutral-400 font-medium truncate">{tz.name || tz.timezone}</span>
                     {preferences.showDate && (
-                      <span className="text-[10px] text-neutral-400 mt-1">{format(getZonedTime(tz.timezone), 'MMM d')}</span>
+                      <span className="text-[10px] text-neutral-400 mt-1">{formatAt(tz.timezone, 'MMM d')}</span>
                     )}
                   </div>
                   {tz.offset && <span className="shrink-0 text-[10px] px-1.5 py-0.5 rounded-full bg-neutral-200/70 dark:bg-neutral-800/70 text-neutral-600 dark:text-neutral-300">{tz.offset}</span>}
