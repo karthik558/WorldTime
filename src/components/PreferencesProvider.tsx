@@ -53,7 +53,7 @@ const DEFAULT: Preferences = {
 
 const PreferencesContext = createContext<PreferencesContextType | undefined>(undefined)
 
-const STORAGE_KEY = 'worldtime:preferences:v1'
+const STORAGE_KEY = 'worldstime:preferences:v1'
 
 export function PreferencesProvider({ children }: { children: ReactNode }) {
   const [preferences, setPreferences] = useState<Preferences>(DEFAULT)

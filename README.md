@@ -1,6 +1,6 @@
 <div align="center">
 
-# WORLDS TIME
+# WorldsTime
 
 Minimal, animated world clock with accent themes, fullscreen ambient mode, alarms, and 12h / 24h display toggle.
 

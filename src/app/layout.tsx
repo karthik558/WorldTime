@@ -11,19 +11,19 @@ const wideFont = Space_Grotesk({ subsets: ['latin'], variable: '--font-wide', we
 const thinFont = Exo_2({ subsets: ['latin'], variable: '--font-thin', weight: ['200','400'] })
 
 export const metadata: Metadata = {
-  title: 'WorldTime',
+  title: 'WorldsTime',
   description: 'Minimal, configurable global time.',
   keywords: ['world time', 'timezone', 'clock', 'time', 'UTC', 'PWA world clock', 'global time'],
-  authors: [{ name: 'World Time' }],
+  authors: [{ name: 'WorldsTime' }],
   openGraph: {
-    title: 'WorldTime',
+    title: 'WorldsTime',
     description: 'Minimal, configurable global time.',
     type: 'website',
     url: 'https://your-domain.example',
   },
   twitter: {
     card: 'summary',
-    title: 'WorldTime',
+    title: 'WorldsTime',
     description: 'Minimal, configurable global time.'
   }
 }
