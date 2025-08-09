@@ -130,10 +130,7 @@ export default function SettingsPanel(){
                 <Toggle label="Cards" value={preferences.showCityCards} onChange={v=>update('showCityCards', v)} />
                 <Toggle label="Quotes" value={preferences.showQuotes} onChange={v=>update('showQuotes', v)} />
               </section>
-              <section className="space-y-2">
-                <Label>Background</Label>
-                <Toggle label="Ambient Animation" value={preferences.bgAnimation} onChange={v=>update('bgAnimation', v)} />
-              </section>
+              {/* Ambient animation toggle moved to header (fullscreen only) */}
               <div className="pt-2 flex justify-between border-t border-neutral-200 dark:border-neutral-800">
                 <button onClick={reset} className="text-[11px] text-neutral-500 hover:text-neutral-800 dark:hover:text-neutral-200">Reset</button>
                 <button onClick={()=>setOpen(false)} className="text-[11px] px-3 py-1.5 rounded-md bg-neutral-900 text-white dark:bg-white dark:text-neutral-900 hover:opacity-90 transition">Done</button>

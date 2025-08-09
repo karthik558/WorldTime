@@ -3,9 +3,11 @@
 import { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import WorldTimeDisplay from '../components/WorldTimeDisplay'
+import AmbientBackground from '../components/AmbientBackground'
 import TimeQuotes from '../components/TimeQuotes'
 import ThemeToggle from '../components/ThemeToggle'
 import FullscreenToggle from '../components/FullscreenToggle'
+import AmbientToggle from '../components/AmbientToggle'
 import SettingsPanel from '../components/SettingsPanel'
 import { usePreferences } from '../components/PreferencesProvider'
 import Preloader from '../components/Preloader'
@@ -38,16 +40,15 @@ export default function Home() {
   return (
   <main className="relative min-h-screen bg-neutral-50 dark:bg-neutral-950 text-neutral-900 dark:text-neutral-100 transition-colors duration-300 font-sans overflow-hidden">
   {showLoader && <Preloader minDurationMs={2600} onDone={()=>setShowLoader(false)} />}
-      {preferences.bgAnimation && (
-        <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden>
-          <div className="absolute inset-0 ambient-gradient opacity-40 mix-blend-overlay bg-[radial-gradient(circle_at_30%_30%,var(--accent-from),transparent_60%),radial-gradient(circle_at_70%_70%,var(--accent-to),transparent_55%)]" />
-        </div>
-      )}
+  {/* Ambient only renders while in fullscreen and toggle enabled */}
+  {preferences.fullscreen && preferences.bgAnimation && <AmbientBackground />}
       <div className="fixed right-3 z-[120]" style={{top:'calc(env(safe-area-inset-top,0px) + 0.75rem)'}} ref={menuRef}>
         {/* Desktop / larger screens toolbar */}
         <div className="hidden sm:flex gap-2 items-center">
           <SettingsPanel />
           <ThemeToggle />
+          {/* Ambient toggle shows only in fullscreen (as per requirement) */}
+          {isFullscreen && <AmbientToggle />}
           {!isFullscreen && <FullscreenToggle isFullscreen={isFullscreen} setIsFullscreen={setIsFullscreen} />}
           {isFullscreen && (
             <>
@@ -101,6 +102,7 @@ export default function Home() {
                   <div className="flex gap-2">
                     <SettingsPanel />
                     <ThemeToggle />
+                    {isFullscreen && <AmbientToggle />}
                     {!isFullscreen && <FullscreenToggle isFullscreen={isFullscreen} setIsFullscreen={setIsFullscreen} />}
                     {isFullscreen && preferences.showSelector && (
                       <button
