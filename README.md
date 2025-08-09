@@ -1,8 +1,7 @@
 <div align="center">
 
 # WorldsTime
-
-Minimal, animated world clock with accent themes, fullscreen ambient mode, alarms, and 12h / 24h display toggle.
+Network‑synced global clock (400+ zones) with country filter, fullscreen ambient, alarm, customization options, PWA & persistent prefs.
 
 </div>
 
