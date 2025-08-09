@@ -56,6 +56,7 @@ export default function AlarmOverlay(){
             exit={{opacity:0}}
           className="fixed inset-0 z-[500] flex items-center justify-center"
         >
+          <span className="sr-only" aria-live="assertive">Alarm ringing. It is {alarmTime ? (use24h ? alarmTime : format12(alarmTime)) : ''}. Press stop to dismiss.</span>
           {/* Pulsing red beams */}
           <div className="absolute inset-0 overflow-hidden">
             <div className="absolute inset-0 bg-red-900/60 mix-blend-multiply" />

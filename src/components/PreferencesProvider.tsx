@@ -27,6 +27,8 @@ interface Preferences {
   dockMode: boolean
   autoAccent: boolean
   reduceMotion: boolean
+  locale: string
+  highContrast: boolean
 }
 
 interface PreferencesContextType {
@@ -57,6 +59,8 @@ const DEFAULT: Preferences = {
   dockMode: false,
   autoAccent: false,
   reduceMotion: false,
+  locale: 'en-US',
+  highContrast: false,
 }
 
 const PreferencesContext = createContext<PreferencesContextType | undefined>(undefined)
@@ -130,6 +134,20 @@ export function PreferencesProvider({ children }: { children: ReactNode }) {
     const id = setInterval(apply, 60 * 1000) // check each minute
     return ()=> clearInterval(id)
   },[preferences.autoAccent])
+
+  // High contrast mode tweaks
+  useEffect(()=>{
+    const root = document.documentElement
+    if(preferences.highContrast){
+      root.classList.add('high-contrast')
+      root.style.setProperty('--accent-from', '#000')
+      root.style.setProperty('--accent-to', '#000')
+      root.style.setProperty('--accent-solid', '#000')
+      root.style.setProperty('--accent-pattern', 'none')
+    } else {
+      root.classList.remove('high-contrast')
+    }
+  },[preferences.highContrast])
 
   const update = (key: keyof Preferences, value: any) => {
     setPreferences(p => ({ ...p, [key]: value }))

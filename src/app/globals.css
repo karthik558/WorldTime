@@ -102,3 +102,18 @@ body {
 /* Custom font utility classes for wide & thin variants */
 .font-wide { font-family: var(--font-wide), var(--font-inter), sans-serif; }
 .font-thin { font-family: var(--font-thin), var(--font-inter), sans-serif; font-weight:200; }
+
+/* High contrast mode overrides */
+.high-contrast body, .high-contrast {
+  --accent-from: #000 !important;
+  --accent-to: #000 !important;
+  --accent-solid: #000 !important;
+  background-color:#fff !important;
+  color:#000 !important;
+}
+.high-contrast .bg-neutral-100\/70, .high-contrast .dark\:bg-neutral-900\/70 { background:#fff !important; }
+.high-contrast .dark\:text-neutral-400, .high-contrast .text-neutral-500, .high-contrast .text-neutral-400 { color:#000 !important; }
+.high-contrast button { border-color:#000 !important; }
+.high-contrast [aria-pressed="true"] { outline:2px solid #000; outline-offset:2px; }
+.high-contrast a { text-decoration:underline; }
+.high-contrast [role="dialog"] { background:#fff !important; color:#000 !important; }

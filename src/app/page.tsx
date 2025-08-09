@@ -14,6 +14,47 @@ import Preloader from '../components/Preloader'
 import { useAccurateUtcTime } from '../hooks/useAccurateUtcTime'
 import AlarmOverlay from '../components/AlarmOverlay'
 
+// keyboard shortcuts component (global)
+const ScriptShortcuts = ({
+  isFullscreen,
+  setFullscreen,
+  openFsSearch,
+  toggleAlarm,
+  alarmEnabled,
+  showSelector,
+}:{
+  isFullscreen:boolean;
+  setFullscreen:(v:boolean)=>void;
+  openFsSearch:()=>void;
+  toggleAlarm:()=>void;
+  alarmEnabled:boolean;
+  showSelector:boolean;
+})=>{
+  useEffect(()=>{
+    const handler=(e:KeyboardEvent)=>{
+      if(e.repeat) return
+      if((e.metaKey||e.ctrlKey)||e.altKey) return
+      const activeTag = (document.activeElement as HTMLElement | null)?.tagName
+      if(activeTag && ['INPUT','TEXTAREA','SELECT'].includes(activeTag)) return
+      const key = e.key.toLowerCase()
+      if(key==='f'){
+        e.preventDefault(); setFullscreen(!isFullscreen); return
+      }
+      if(key==='/' ){
+        e.preventDefault()
+        if(isFullscreen) openFsSearch(); else if(showSelector) window.dispatchEvent(new Event('focus-main-search'))
+        return
+      }
+      if(key==='a'){
+        e.preventDefault(); toggleAlarm(); return
+      }
+    }
+    window.addEventListener('keydown',handler)
+    return ()=>window.removeEventListener('keydown',handler)
+  },[isFullscreen,setFullscreen,openFsSearch,toggleAlarm,alarmEnabled,showSelector])
+  return null
+}
+
 export default function Home() {
   const { preferences, update } = usePreferences()
   const isFullscreen = preferences.fullscreen
@@ -60,6 +101,14 @@ export default function Home() {
 
   return (
   <main className="relative min-h-screen bg-neutral-50 dark:bg-neutral-950 text-neutral-900 dark:text-neutral-100 transition-colors duration-300 font-sans overflow-hidden">
+  <ScriptShortcuts
+    isFullscreen={isFullscreen}
+    setFullscreen={animatedSetFullscreen}
+    openFsSearch={()=>setFsSearchOpen(true)}
+    toggleAlarm={()=>update('alarmEnabled', !preferences.alarmEnabled)}
+    alarmEnabled={!!preferences.alarmEnabled}
+    showSelector={preferences.showSelector}
+  />
   {showLoader && <Preloader minDurationMs={2600} onDone={()=>setShowLoader(false)} />}
   {/* Ambient only renders while in fullscreen and toggle enabled */}
   {preferences.fullscreen && preferences.bgAnimation && <AmbientBackground />}

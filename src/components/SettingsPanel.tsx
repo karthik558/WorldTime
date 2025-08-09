@@ -133,6 +133,14 @@ export default function SettingsPanel(){
                     <DisplaySelect accent={preferences.accent} label="Search" active={preferences.showSelector} onToggle={()=>update('showSelector', !preferences.showSelector)} />
                     <DisplaySelect accent={preferences.accent} label="Cards" active={preferences.showCityCards} onToggle={()=>update('showCityCards', !preferences.showCityCards)} />
                     <DisplaySelect accent={preferences.accent} label="Quotes" active={preferences.showQuotes} onToggle={()=>update('showQuotes', !preferences.showQuotes)} />
+                    <DisplaySelect accent={preferences.accent} label="Contrast" active={preferences.highContrast} onToggle={()=>update('highContrast', !preferences.highContrast)} />
+                    <DisplaySelect accent={preferences.accent} label="Auto Accent" active={preferences.autoAccent} onToggle={()=>update('autoAccent', !preferences.autoAccent)} />
+                  </div>
+                  <div className="pt-2 space-y-2">
+                    <Label>Locale</Label>
+                    <select value={preferences.locale} onChange={e=>update('locale', e.target.value)} className="w-full h-10 rounded-lg border border-neutral-300 dark:border-neutral-700 bg-white/70 dark:bg-neutral-800/60 px-2 text-xs focus:outline-none focus:ring-2 focus:ring-[var(--accent-from)]/50">
+                      {['en-US','en-GB','fr-FR','de-DE','ja-JP','hi-IN','ar-EG','es-ES'].map(loc=> <option key={loc} value={loc}>{loc}</option>)}
+                    </select>
                   </div>
                 </section>
                 <section className="space-y-3">
@@ -146,6 +154,7 @@ export default function SettingsPanel(){
                     <button
                       type="button"
                       onClick={()=>update('alarmEnabled', !preferences.alarmEnabled)}
+                      data-alarm-toggle
                       className={`flex-1 h-11 rounded-lg text-[11px] font-medium border transition relative overflow-hidden ${preferences.alarmEnabled? 'border-red-500 bg-red-600/90 text-white shadow-sm':'border-neutral-300 dark:border-neutral-700 bg-neutral-100/70 dark:bg-neutral-800/60 text-neutral-600 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800'}`}
                       aria-pressed={preferences.alarmEnabled}
                     >

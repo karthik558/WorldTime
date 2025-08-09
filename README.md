@@ -23,6 +23,16 @@ Network‑synced global clock (400+ zones) with country filter, fullscreen ambie
 - Responsive layout
 - Smooth animations
 
+## Keyboard Shortcuts
+
+| Key | Action |
+|-----|--------|
+| `f` | Toggle fullscreen mode |
+| `/` | Open search (fullscreen overlay if in fullscreen, focuses main search otherwise) |
+| `a` | Toggle alarm enabled state |
+
+Shortcuts are ignored while typing in inputs or when modifier keys are held.
+
 ## Alarm
 
 - Set time in Settings → Alarm

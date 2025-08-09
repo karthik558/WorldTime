@@ -131,6 +131,17 @@ export default function WorldTimeDisplay({ isFullscreen, fsSearchOpen, onCloseSe
   const searchRef = useRef<HTMLInputElement|null>(null)
   const [showFsSearch, setShowFsSearch] = useState(false)
 
+  // Focus main search when custom event fired (from shortcut outside fullscreen)
+  useEffect(()=>{
+    const focusHandler = () => {
+      if(!isFullscreen && preferences.showSelector){
+        searchRef.current?.focus()
+      }
+    }
+    window.addEventListener('focus-main-search', focusHandler)
+    return ()=> window.removeEventListener('focus-main-search', focusHandler)
+  },[isFullscreen, preferences.showSelector])
+
   // Sync external fullscreen search trigger
   useEffect(()=>{
     if(isFullscreen){
@@ -146,6 +157,7 @@ export default function WorldTimeDisplay({ isFullscreen, fsSearchOpen, onCloseSe
 
   // We rely entirely on the network-synced time from the hook; no extra device interval.
 
+  // Legacy pattern-based formatting still used for date; time uses Intl for locale respect
   const formatAt = (timezone: string, pattern: string) => formatInTimeZone(accurateNow, timezone, pattern)
 
   const filtered = useMemo(()=>{
@@ -172,9 +184,19 @@ export default function WorldTimeDisplay({ isFullscreen, fsSearchOpen, onCloseSe
   },[query, filtered.length, page])
 
   const timeString = (tz: string) => {
-    const pattern24 = preferences.showSeconds ? 'HH:mm:ss' : 'HH:mm'
-    const pattern12 = preferences.showSeconds ? 'hh:mm:ss a' : 'hh:mm a'
-  return formatAt(tz, preferences.use24h ? pattern24 : pattern12)
+    try {
+      const opt: Intl.DateTimeFormatOptions = {
+        hour: 'numeric', minute: '2-digit', second: preferences.showSeconds? '2-digit': undefined,
+        hour12: !preferences.use24h,
+        timeZone: tz,
+      }
+      // Ensure 2-digit hour when 24h
+      if(preferences.use24h) opt.hour = '2-digit'
+      return new Intl.DateTimeFormat(preferences.locale || 'en-US', opt).format(accurateNow)
+    } catch {
+      const fallbackPattern = preferences.use24h ? (preferences.showSeconds? 'HH:mm:ss':'HH:mm') : (preferences.showSeconds? 'hh:mm:ss a':'hh:mm a')
+      return formatAt(tz, fallbackPattern)
+    }
   }
   const accentGradient = 'bg-gradient-to-br from-[var(--accent-from)] to-[var(--accent-to)]'
 
@@ -182,7 +204,7 @@ export default function WorldTimeDisplay({ isFullscreen, fsSearchOpen, onCloseSe
     const str = timeString(tz)
     const scale = isFullscreen ? (preferences.fontScale || 1) : 1
     return (
-      <div className={`select-none leading-none tracking-tight ${fontClass(preferences.font)} ${weight} ${sizeClasses} flex items-center justify-center`} style={scale!==1?{ transform:`scale(${scale})` }:undefined}> 
+      <div aria-live={preferences.showSeconds? 'off':'polite'} aria-label={`Current time ${str}`} className={`select-none leading-none tracking-tight ${fontClass(preferences.font)} ${weight} ${sizeClasses} flex items-center justify-center`} style={scale!==1?{ transform:`scale(${scale})` }:undefined}> 
         {str.split('').map((ch,i)=> {
           if(ch === ':'){
             return <span key={i} className="mx-[0.05em] text-transparent bg-clip-text bg-gradient-to-b from-[var(--accent-from)] to-[var(--accent-to)]">:</span>
