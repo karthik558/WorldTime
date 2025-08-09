@@ -4,6 +4,9 @@ import './globals.css'
 import { ThemeProvider } from '@/components/ThemeProvider'
 import { PreferencesProvider } from '../components/PreferencesProvider'
 import { TitleTicker } from '@/components/TitleTicker'
+import dynamic from 'next/dynamic'
+
+const PWAInstall = dynamic(()=> import('@/components/PWAInstall'), { ssr:false })
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' })
 const mono = Roboto_Mono({ subsets: ['latin'], variable: '--font-mono' })
@@ -52,14 +55,19 @@ export default function RootLayout({
         <link rel="apple-touch-icon" href="/icons/icon-192.png" />
   <link rel="icon" type="image/png" href="/favicon.png" />
   <link rel="shortcut icon" href="/favicon.png" />
+        <meta name="apple-mobile-web-app-title" content="WorldsTime" />
+        <meta name="mobile-web-app-capable" content="yes" />
+        <meta name="format-detection" content="telephone=no" />
       </head>
   <body className={`${inter.variable} ${mono.variable} ${serif.variable} ${wideFont.variable} ${thinFont.variable}`}>
         <ThemeProvider>
           <PreferencesProvider>
             <TitleTicker />
             {children}
+            <PWAInstall />
           </PreferencesProvider>
         </ThemeProvider>
+  <style>{`@media (display-mode: standalone){ body{padding-top:12px;} .hide-standalone{display:none!important;} }`}</style>
       </body>
     </html>
   )
