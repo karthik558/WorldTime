@@ -89,7 +89,42 @@ export default function WorldTimeDisplay({ isFullscreen, fsSearchOpen, onCloseSe
     return timeZones.find(t=> t.timezone===tzToUse) || timeZones[0]
   })
   const [query, setQuery] = useState('')
-  const [countryFilter, setCountryFilter] = useState<string>('')
+  const countryFilter = preferences.countryFilter || ''
+  const setCountryFilter = (val: string) => update('countryFilter', val)
+
+  // Apply a country filter and optionally auto-select a representative timezone
+  const applyCountryFilter = (code: string) => {
+    setCountryFilter(code)
+    if(code){
+      const country = countryTimezones.find(c=> c.code===code)
+      if(country){
+        const primaryTz = country.timezones[0]
+        if(primaryTz && selectedTimezone.timezone !== primaryTz && !country.timezones.includes(selectedTimezone.timezone)){
+          const tzObj = timeZones.find(t=> t.timezone===primaryTz)
+          if(tzObj){
+            setSelectedTimezone(tzObj)
+            update('selectedTimezone', tzObj.timezone)
+          }
+        }
+      }
+    }
+  }
+
+  // On mount / preference load: if a country filter is active but current timezone not inside it, align.
+  useEffect(()=>{
+    if(countryFilter){
+      const country = countryTimezones.find(c=> c.code===countryFilter)
+      if(country && !country.timezones.includes(selectedTimezone.timezone)){
+        const primaryTz = country.timezones[0]
+        const tzObj = timeZones.find(t=> t.timezone===primaryTz)
+        if(tzObj){
+          setSelectedTimezone(tzObj)
+          update('selectedTimezone', tzObj.timezone)
+        }
+      }
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  },[countryFilter])
   // Page-based pagination for city cards when not searching
   const PAGE_SIZE = 24
   const [page, setPage] = useState(0)
@@ -205,7 +240,7 @@ export default function WorldTimeDisplay({ isFullscreen, fsSearchOpen, onCloseSe
                   return (
                     <button
                       key={code}
-                      onClick={()=> setCountryFilter(code)}
+                      onClick={()=> applyCountryFilter(code)}
                       className={`whitespace-nowrap px-3 py-1.5 rounded-full text-[11px] font-medium border transition ${active? 'bg-neutral-900 text-white dark:bg-neutral-100 dark:text-neutral-900 border-neutral-900 dark:border-neutral-100':'border-neutral-300 dark:border-neutral-700 bg-neutral-100/60 dark:bg-neutral-900/60 hover:border-neutral-500 dark:hover:border-neutral-500'}`}
                     >{c.country}</button>
                   )
@@ -257,7 +292,7 @@ export default function WorldTimeDisplay({ isFullscreen, fsSearchOpen, onCloseSe
                   return (
                     <button
                       key={code}
-                      onClick={()=> setCountryFilter(code)}
+                      onClick={()=> applyCountryFilter(code)}
                       className={`whitespace-nowrap px-3 py-1.5 rounded-full text-[11px] font-medium border transition ${active? 'bg-neutral-900 text-white dark:bg-neutral-100 dark:text-neutral-900 border-neutral-900 dark:border-neutral-100':'border-neutral-300 dark:border-neutral-700 bg-neutral-100/60 dark:bg-neutral-900/60 hover:border-neutral-500 dark:hover:border-neutral-500'}`}
                     >{c.country}</button>
                   )

@@ -12,9 +12,10 @@ import Preloader from '../components/Preloader'
 import { useAccurateUtcTime } from '../hooks/useAccurateUtcTime'
 
 export default function Home() {
-  const [isFullscreen, setIsFullscreen] = useState(false)
+  const { preferences, update } = usePreferences()
+  const isFullscreen = preferences.fullscreen
+  const setIsFullscreen = (val: boolean) => update('fullscreen', val)
   const [fsSearchOpen, setFsSearchOpen] = useState(false)
-  const { preferences } = usePreferences()
   const { ready } = useAccurateUtcTime()
   const [showLoader, setShowLoader] = useState(true)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)

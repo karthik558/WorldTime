@@ -9,6 +9,8 @@ interface Preferences {
   font: TimeFont
   fontScale: number
   selectedTimezone?: string
+  countryFilter?: string
+  fullscreen: boolean
   showSeconds: boolean
   showDate: boolean
   showGrid: boolean
@@ -30,6 +32,8 @@ const DEFAULT: Preferences = {
   font: 'mono',
   fontScale: 1,
   selectedTimezone: undefined,
+  countryFilter: '',
+  fullscreen: false,
   showSeconds: true,
   showDate: true,
   showGrid: true,
