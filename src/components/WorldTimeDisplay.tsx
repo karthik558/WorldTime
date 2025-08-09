@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { format, utcToZonedTime } from 'date-fns-tz'
 import { usePreferences, fontClass, accentClass, ringAccent } from './PreferencesProvider'
+import { countryTimezones, topCountryCodes } from '../data/countryTimezones'
 import { useMemo, useRef } from 'react'
 import { useAccurateUtcTime } from '../hooks/useAccurateUtcTime'
 
@@ -88,7 +89,10 @@ export default function WorldTimeDisplay({ isFullscreen, fsSearchOpen, onCloseSe
     return timeZones.find(t=> t.timezone===tzToUse) || timeZones[0]
   })
   const [query, setQuery] = useState('')
-  const [expanded, setExpanded] = useState(false)
+  const [countryFilter, setCountryFilter] = useState<string>('')
+  // Page-based pagination for city cards when not searching
+  const PAGE_SIZE = 24
+  const [page, setPage] = useState(0)
   const searchRef = useRef<HTMLInputElement|null>(null)
   const [showFsSearch, setShowFsSearch] = useState(false)
 
@@ -110,17 +114,27 @@ export default function WorldTimeDisplay({ isFullscreen, fsSearchOpen, onCloseSe
   const getZonedTime = (timezone: string) => utcToZonedTime(accurateNow, timezone)
 
   const filtered = useMemo(()=>{
-    const baseList = timeZones
+    let baseList = timeZones
+    if(countryFilter){
+      const country = countryTimezones.find(c=> c.code===countryFilter)
+      if(country){
+        baseList = baseList.filter(t=> country.timezones.includes(t.timezone))
+      }
+    }
     if(!query.trim()) return baseList
     const q = query.toLowerCase()
     return baseList.filter(t=> (t.name||'').toLowerCase().includes(q) || t.timezone.toLowerCase().includes(q) || (t.abbreviation||'').toLowerCase().includes(q))
-  },[query])
+  },[query, countryFilter])
 
-  // Auto expand when searching
+  // Reset / clamp page when dataset or query changes
   useEffect(()=>{
-    if(query && !expanded) setExpanded(true)
-    if(!query && expanded) setExpanded(expanded) // keep state if user manually expanded
-  },[query, expanded])
+    if(query){
+      setPage(0)
+    } else {
+      const maxPage = Math.max(0, Math.ceil(filtered.length / PAGE_SIZE) - 1)
+      if(page > maxPage) setPage(maxPage)
+    }
+  },[query, filtered.length, page])
 
   const timeString = (tz: string) => format(getZonedTime(tz), preferences.showSeconds ? 'HH:mm:ss' : 'HH:mm')
   const accentGradient = 'bg-gradient-to-br from-[var(--accent-from)] to-[var(--accent-to)]'
@@ -180,6 +194,23 @@ export default function WorldTimeDisplay({ isFullscreen, fsSearchOpen, onCloseSe
                   ✕
                 </button>
               </div>
+              <div className="flex gap-2 flex-wrap mt-4">
+                <button
+                  onClick={()=> setCountryFilter('')}
+                  className={`whitespace-nowrap px-3 py-1.5 rounded-full text-[11px] font-medium border transition ${!countryFilter? 'bg-neutral-900 text-white dark:bg-neutral-100 dark:text-neutral-900 border-neutral-900 dark:border-neutral-100':'border-neutral-300 dark:border-neutral-700 bg-neutral-100/60 dark:bg-neutral-900/60 hover:border-neutral-500 dark:hover:border-neutral-500'}`}
+                >All</button>
+                {topCountryCodes.map(code=> {
+                  const c = countryTimezones.find(ct=> ct.code===code)!
+                  const active = countryFilter===code
+                  return (
+                    <button
+                      key={code}
+                      onClick={()=> setCountryFilter(code)}
+                      className={`whitespace-nowrap px-3 py-1.5 rounded-full text-[11px] font-medium border transition ${active? 'bg-neutral-900 text-white dark:bg-neutral-100 dark:text-neutral-900 border-neutral-900 dark:border-neutral-100':'border-neutral-300 dark:border-neutral-700 bg-neutral-100/60 dark:bg-neutral-900/60 hover:border-neutral-500 dark:hover:border-neutral-500'}`}
+                    >{c.country}</button>
+                  )
+                })}
+              </div>
               <div className="mt-5 max-h-[50vh] overflow-auto rounded-xl border border-neutral-200 dark:border-neutral-800 divide-y divide-neutral-200 dark:divide-neutral-800 backdrop-blur supports-[backdrop-filter]:bg-white/60 dark:supports-[backdrop-filter]:bg-neutral-900/40 shadow-xl">
                 {filtered.map(tz => (
                   <button key={tz.timezone} onClick={()=>{ setSelectedTimezone(tz); update('selectedTimezone', tz.timezone); setQuery(''); setShowFsSearch(false); onCloseSearch?.(); }}
@@ -214,20 +245,39 @@ export default function WorldTimeDisplay({ isFullscreen, fsSearchOpen, onCloseSe
         </div>
         {preferences.showSelector && (
           <div className="w-full max-w-xl px-4">
-            <input
-              ref={searchRef}
-              value={query}
-              onChange={e=>setQuery(e.target.value)}
-              placeholder="Search timezone or city..."
-              className="w-full rounded-full px-5 py-3 bg-neutral-100/70 dark:bg-neutral-900/70 border border-neutral-300 dark:border-neutral-700 focus:outline-none focus:ring-2 focus:ring-neutral-500 text-sm"
-            />
+            <div className="flex flex-col gap-3">
+              <div className="flex gap-2 overflow-x-auto scrollbar-none pb-1 -mx-1 px-1">
+                <button
+                  onClick={()=> setCountryFilter('')}
+                  className={`whitespace-nowrap px-3 py-1.5 rounded-full text-[11px] font-medium border transition ${!countryFilter? 'bg-neutral-900 text-white dark:bg-neutral-100 dark:text-neutral-900 border-neutral-900 dark:border-neutral-100':'border-neutral-300 dark:border-neutral-700 bg-neutral-100/60 dark:bg-neutral-900/60 hover:border-neutral-500 dark:hover:border-neutral-500'}`}
+                >All</button>
+                {topCountryCodes.map(code=> {
+                  const c = countryTimezones.find(ct=> ct.code===code)!
+                  const active = countryFilter===code
+                  return (
+                    <button
+                      key={code}
+                      onClick={()=> setCountryFilter(code)}
+                      className={`whitespace-nowrap px-3 py-1.5 rounded-full text-[11px] font-medium border transition ${active? 'bg-neutral-900 text-white dark:bg-neutral-100 dark:text-neutral-900 border-neutral-900 dark:border-neutral-100':'border-neutral-300 dark:border-neutral-700 bg-neutral-100/60 dark:bg-neutral-900/60 hover:border-neutral-500 dark:hover:border-neutral-500'}`}
+                    >{c.country}</button>
+                  )
+                })}
+              </div>
+              <input
+                ref={searchRef}
+                value={query}
+                onChange={e=>setQuery(e.target.value)}
+                placeholder={countryFilter? 'Search within country...' : 'Search timezone or city...'}
+                className="w-full rounded-full px-5 py-3 bg-neutral-100/70 dark:bg-neutral-900/70 border border-neutral-300 dark:border-neutral-700 focus:outline-none focus:ring-2 focus:ring-neutral-500 text-sm"
+              />
+            </div>
           </div>
         )}
       </section>
       {preferences.showGrid && preferences.showCityCards && (
         <section className="px-2 flex flex-col gap-5">
           <div className={`grid gap-5 ${preferences.compactCards ? 'grid-cols-2 md:grid-cols-4 lg:grid-cols-6' : 'grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5'}`}>
-          {(expanded ? filtered : filtered.slice(0, 12)).map(tz => {
+          {(query ? filtered : filtered.slice(page * PAGE_SIZE, page * PAGE_SIZE + PAGE_SIZE)).map(tz => {
             const active = tz.name === selectedTimezone.name
             return (
               <button
@@ -253,14 +303,44 @@ export default function WorldTimeDisplay({ isFullscreen, fsSearchOpen, onCloseSe
             )
           })}
           </div>
-          {filtered.length > 12 && !query && (
-            <div className="flex justify-center pt-1">
-              <button
-                onClick={()=>setExpanded(e=>!e)}
-                className="text-xs px-4 py-2 rounded-full border border-neutral-300 dark:border-neutral-700 hover:border-neutral-500 dark:hover:border-neutral-500 transition bg-neutral-100/60 dark:bg-neutral-900/60"
-              >
-                {expanded ? 'Collapse list' : `Show all (${filtered.length})`}
-              </button>
+          {!query && filtered.length > PAGE_SIZE && (
+            <div className="flex flex-col items-center gap-2 pt-1">
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={()=> setPage(p=> Math.max(0, p-1))}
+                  disabled={page===0}
+                  className={`text-xs px-3 py-1.5 rounded-full border transition ${page===0? 'opacity-40 cursor-not-allowed border-neutral-300 dark:border-neutral-700':'border-neutral-300 dark:border-neutral-700 hover:border-neutral-500 dark:hover:border-neutral-500 bg-neutral-100/60 dark:bg-neutral-900/60'}`}
+                  aria-label="Previous page"
+                >Prev</button>
+                {/* Page indicators (show at most 7 with ellipsis) */}
+                <div className="flex items-center gap-1">
+                  {(() => {
+                    const total = Math.ceil(filtered.length / PAGE_SIZE)
+                    const pages: (number | 'ellipsis')[] = []
+                    const push = (v: number | 'ellipsis') => pages.push(v)
+                    for(let i=0;i<total;i++){
+                      if(total <= 7){ push(i); continue }
+                      if(i === 0 || i === total-1 || Math.abs(i - page) <=1){ push(i) }
+                      else if(pages[pages.length-1] !== 'ellipsis'){ push('ellipsis') }
+                    }
+                    return pages.map((p,i)=> p==='ellipsis'? <span key={i} className="text-[10px] px-1 text-neutral-400">…</span> : (
+                      <button
+                        key={p}
+                        onClick={()=> setPage(p)}
+                        className={`h-7 w-7 rounded-full text-[11px] font-medium border transition ${p===page? 'border-neutral-900 dark:border-neutral-100 bg-neutral-900 text-white dark:bg-neutral-100 dark:text-neutral-900':'border-neutral-300 dark:border-neutral-700 hover:border-neutral-500 dark:hover:border-neutral-500 bg-neutral-100/60 dark:bg-neutral-900/60'}`}
+                        aria-label={`Go to page ${p+1}`}
+                      >{p+1}</button>
+                    ))
+                  })()}
+                </div>
+                <button
+                  onClick={()=> setPage(p=> Math.min(Math.ceil(filtered.length / PAGE_SIZE)-1, p+1))}
+                  disabled={page >= Math.ceil(filtered.length / PAGE_SIZE)-1}
+                  className={`text-xs px-3 py-1.5 rounded-full border transition ${page >= Math.ceil(filtered.length / PAGE_SIZE)-1? 'opacity-40 cursor-not-allowed border-neutral-300 dark:border-neutral-700':'border-neutral-300 dark:border-neutral-700 hover:border-neutral-500 dark:hover:border-neutral-500 bg-neutral-100/60 dark:bg-neutral-900/60'}`}
+                  aria-label="Next page"
+                >Next</button>
+              </div>
+              <p className="text-[10px] text-neutral-400 dark:text-neutral-500">Page {page+1} of {Math.ceil(filtered.length / PAGE_SIZE)}</p>
             </div>
           )}
         </section>
