@@ -124,13 +124,15 @@ export default function SettingsPanel(){
                     </div>
                   </div>
                 </section>
-                <section className="space-y-2">
+                <section className="space-y-3">
                   <Label>Display</Label>
-                  <Toggle label="Seconds" value={preferences.showSeconds} onChange={v=>update('showSeconds', v)} />
-                  <Toggle label="Date" value={preferences.showDate} onChange={v=>update('showDate', v)} />
-                  <Toggle label="Search Bar" value={preferences.showSelector} onChange={v=>update('showSelector', v)} />
-                  <Toggle label="Cards" value={preferences.showCityCards} onChange={v=>update('showCityCards', v)} />
-                  <Toggle label="Quotes" value={preferences.showQuotes} onChange={v=>update('showQuotes', v)} />
+                  <div className="grid grid-cols-2 gap-2">
+                    <DisplaySelect accent={preferences.accent} label="Seconds" active={preferences.showSeconds} onToggle={()=>update('showSeconds', !preferences.showSeconds)} />
+                    <DisplaySelect accent={preferences.accent} label="Date" active={preferences.showDate} onToggle={()=>update('showDate', !preferences.showDate)} />
+                    <DisplaySelect accent={preferences.accent} label="Search" active={preferences.showSelector} onToggle={()=>update('showSelector', !preferences.showSelector)} />
+                    <DisplaySelect accent={preferences.accent} label="Cards" active={preferences.showCityCards} onToggle={()=>update('showCityCards', !preferences.showCityCards)} />
+                    <DisplaySelect accent={preferences.accent} label="Quotes" active={preferences.showQuotes} onToggle={()=>update('showQuotes', !preferences.showQuotes)} />
+                  </div>
                 </section>
                 <div className="pt-2 flex justify-between border-t border-neutral-200 dark:border-neutral-800">
                   <button onClick={reset} className="text-[11px] text-neutral-500 hover:text-neutral-800 dark:hover:text-neutral-200">Reset</button>
@@ -154,16 +156,16 @@ function Label({children}:{children:React.ReactNode}){
   return <p className="uppercase tracking-wide text-[10px] font-medium text-neutral-600 dark:text-neutral-300">{children}</p>
 }
 
-function Toggle({label, value, onChange}:{label:string; value:boolean; onChange:(v:boolean)=>void}){
+function DisplaySelect({label, active, onToggle, accent}:{label:string; active:boolean; onToggle:()=>void; accent:AccentColor}){
   return (
-    <label className="flex items-center justify-between gap-4 cursor-pointer">
-      <span>{label}</span>
-      <button type="button" onClick={()=>onChange(!value)}
-        className={`h-5 w-9 rounded-full relative transition-colors ${value?'bg-neutral-900 dark:bg-neutral-200':'bg-neutral-300 dark:bg-neutral-700'}`}
-        aria-pressed={value}
-      >
-        <span className={`absolute top-0.5 left-0.5 h-4 w-4 rounded-full bg-white dark:bg-neutral-900 shadow transform transition-transform ${value?'translate-x-4':''}`}></span>
-      </button>
-    </label>
+    <button
+      type="button"
+      onClick={onToggle}
+      aria-pressed={active}
+      className={`relative h-11 rounded-lg border text-[11px] flex items-center justify-center px-2 transition group overflow-hidden ${active? 'border-neutral-700 dark:border-neutral-300 bg-neutral-100/90 dark:bg-neutral-800/80 shadow-sm text-neutral-900 dark:text-neutral-50':'border-neutral-300 dark:border-neutral-700 hover:bg-neutral-100/60 dark:hover:bg-neutral-800/60 text-neutral-600 dark:text-neutral-300'}`}
+    >
+      <span className="leading-none tracking-wide font-medium">{label}</span>
+  {active && <span className={`absolute inset-x-0 bottom-0 h-0.5 bg-gradient-to-r ${accentClass(accent)}`}></span>}
+    </button>
   )
 }
