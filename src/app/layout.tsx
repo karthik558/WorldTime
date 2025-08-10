@@ -4,9 +4,7 @@ import './globals.css'
 import { ThemeProvider } from '@/components/ThemeProvider'
 import { PreferencesProvider } from '../components/PreferencesProvider'
 import { TitleTicker } from '@/components/TitleTicker'
-import dynamic from 'next/dynamic'
-
-const PWAInstall = dynamic(()=> import('@/components/PWAInstall'), { ssr:false })
+import PWAInstall from '@/components/PWAInstall'
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' })
 const mono = Roboto_Mono({ subsets: ['latin'], variable: '--font-mono' })
